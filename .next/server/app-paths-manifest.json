@@ -1,0 +1,6 @@
+{
+  "/api/razorpay-notify/route": "app/api/razorpay-notify/route.js",
+  "/page": "app/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/pay/page": "app/pay/page.js"
+}

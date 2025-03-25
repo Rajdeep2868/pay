@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState } from "react"
 import { motion } from "framer-motion"
@@ -7,23 +7,29 @@ import { useRouter } from "next/navigation"
 import { FcGoogle } from "react-icons/fc"
 import Link from "next/link"
 
-export default function Login() {
+export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle } = useAuth()
   const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match")
+    }
+
     try {
       setError("")
       setLoading(true)
-      await login(email, password)
+      await signUp(email, password)
       router.push("/dashboard")
     } catch {
-      setError("Failed to sign in")
+      setError("Failed to create an account")
     }
     setLoading(false)
   }
@@ -80,7 +86,7 @@ export default function Login() {
 
         {/* Glass Card */}
         <div className="backdrop-blur-xl bg-white/[0.05] rounded-3xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/[0.05]">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Welcome Back</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">Create Account</h2>
 
           {error && (
             <motion.div
@@ -128,6 +134,23 @@ export default function Login() {
             </div>
 
             <div>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                id="confirm-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white placeholder-gray-500
+                         focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-transparent
+                         transition-all duration-200"
+                placeholder="Confirm your password"
+              />
+            </div>
+
+            <div>
               <button
                 disabled={loading}
                 type="submit"
@@ -136,7 +159,7 @@ export default function Login() {
                          disabled:opacity-50 disabled:cursor-not-allowed
                          shadow-[0_8px_32px_rgba(168,85,247,0.3)]"
               >
-                Sign In
+                Sign Up
               </button>
             </div>
           </form>
@@ -164,9 +187,9 @@ export default function Login() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-400">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium">
+              Sign in
             </Link>
           </p>
         </div>

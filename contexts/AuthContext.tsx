@@ -1,35 +1,32 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
   User, 
   signInWithPopup, 
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, provider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
   loading: boolean;
-  signIn: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   setDisplayName: (name: string) => Promise<void>;
-}
+};
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  signIn: async () => {},
-  signOut: async () => {},
-  setDisplayName: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,87 +60,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [router]);
 
-  const signIn = async () => {
-    try {
-      // Add a loading state to provide feedback to user
-      setLoading(true);
-      
-      console.log('Starting Google sign-in process...');
-      
-      // Check if we're in a mobile browser
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      // Track the sign-in event
-      console.log(`Using ${isMobile ? 'mobile' : 'desktop'} sign-in strategy`);
-      
-      // Use signInWithPopup for better compatibility on both mobile and desktop
-      const result = await signInWithPopup(auth, provider).catch((popupError) => {
-        console.error('Popup sign-in error:', popupError);
-        
-        // If we got a popup blocked error, we can try redirect method
-        if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user') {
-          console.log('Popup was blocked or closed, trying alternative method...');
-          
-          // Import and use signInWithRedirect as a fallback
-          import('firebase/auth').then(({ signInWithRedirect }) => {
-            signInWithRedirect(auth, provider);
-          });
-          
-          throw new Error('Using redirect method. Please wait for page redirect...');
-        }
-        
-        throw popupError;
-      });
-      
-      // If we reach here, the popup sign-in was successful
-      const user = result.user;
-      console.log('Google sign-in successful', { uid: user.uid, email: user.email });
-      
-      try {
-        // Check if this is a new user by looking for their document in Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        
-        if (!userDoc.exists()) {
-          // Create a new user document
-          console.log('Creating new user document in Firestore');
-          await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            createdAt: new Date(),
-          });
-          
-          // Redirect to get name if first time
-          console.log('Redirecting to onboarding');
-          router.push('/onboarding');
-        } else {
-          // Existing user - redirect to dashboard
-          console.log('User exists, redirecting to dashboard');
-          router.push('/dashboard');
-        }
-      } catch (firestoreError) {
-        console.error('Firestore operation failed:', firestoreError);
-        // Even if Firestore fails, we should still redirect to dashboard
-        // since the user is authenticated
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      console.error('Error signing in:', error);
-      // Only reset loading state if we're not doing a redirect
-      if (!(error instanceof Error && error.message.includes('redirect'))) {
-        setLoading(false);
-      }
-    }
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const signUp = async (email: string, password: string) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
   };
 
   const signOut = async () => {
-    try {
-      await firebaseSignOut(auth);
-      router.push('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+    await firebaseSignOut(auth);
+    router.push('/');
   };
 
   const setDisplayName = async (name: string) => {
@@ -160,9 +92,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const value = {
+    user,
+    loading,
+    login,
+    signUp,
+    signOut,
+    signInWithGoogle,
+    setDisplayName
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, setDisplayName }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-}; 
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+} 

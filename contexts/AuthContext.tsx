@@ -1,21 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  User, 
-  signInWithPopup, 
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db, provider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
+type User = {
+  uid: string;
+  email: string;
+  displayName: string;
+} | null;
+
 type AuthContextType = {
-  user: User | null;
+  user: User;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -27,69 +22,65 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      // Import necessary functions
-      import('firebase/auth').then(({ onAuthStateChanged }) => {
-        // First set up the auth state listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          setUser(user);
-          setLoading(false);
-        }, (authError) => {
-          console.error("Auth state change error:", authError);
-          setError(authError.message);
-          setLoading(false);
-        });
-        
-        return () => unsubscribe();
-      }).catch(error => {
-        console.error("Failed to import auth functions:", error);
-        setError("Authentication service unavailable");
-        setLoading(false);
-      });
-    } catch (error) {
-      console.error("Auth subscription error:", error);
-      setError(error instanceof Error ? error.message : "Authentication service unavailable");
+    // Simulate loading and check for existing session
+    const checkAuth = () => {
+      const savedUser = localStorage.getItem('demo-user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
       setLoading(false);
-      return () => {}; // Return empty cleanup function
-    }
-  }, [router]);
+    };
+
+    checkAuth();
+  }, []);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    // Demo login - accept any email/password
+    const demoUser = {
+      uid: 'demo-user-' + Date.now(),
+      email,
+      displayName: email.split('@')[0]
+    };
+    
+    localStorage.setItem('demo-user', JSON.stringify(demoUser));
+    setUser(demoUser);
   };
 
   const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    // Demo signup - same as login
+    await login(email, password);
   };
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    // Demo Google signin
+    const demoUser = {
+      uid: 'demo-google-user-' + Date.now(),
+      email: 'demo@google.com',
+      displayName: 'Demo User'
+    };
+    
+    localStorage.setItem('demo-user', JSON.stringify(demoUser));
+    setUser(demoUser);
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    localStorage.removeItem('demo-user');
+    setUser(null);
     router.push('/');
   };
 
   const setDisplayName = async (name: string) => {
     if (!user) return;
     
-    try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        displayName: name,
-      });
-      
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error updating display name:', error);
-    }
+    const updatedUser = { ...user, displayName: name };
+    localStorage.setItem('demo-user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    router.push('/dashboard');
   };
 
   const value = {
@@ -115,4 +106,4 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-} 
+}

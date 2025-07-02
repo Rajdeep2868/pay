@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
@@ -14,7 +13,6 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { connectedWallets, defaultWallet, transactions } = useWallet();
   
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -30,7 +28,6 @@ export default function Dashboard() {
     show: { opacity: 1, y: 0 }
   };
 
-  // Truncate wallet address
   const truncateAddress = (address: string) => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
@@ -39,7 +36,6 @@ export default function Dashboard() {
     <ProtectedRoute>
       <div className="pt-24 pb-20 md:pb-10 dashboard-page">
         <main className="container mx-auto px-4 max-w-6xl">
-          {/* Welcome Section */}
           <motion.div 
             className="mb-8"
             variants={containerVariants}
@@ -57,7 +53,6 @@ export default function Dashboard() {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column - Wallet Management */}
             <motion.div 
               className="lg:col-span-5"
               variants={containerVariants}
@@ -109,7 +104,6 @@ export default function Dashboard() {
               </motion.div>
             </motion.div>
 
-            {/* Right Column - Transaction History */}
             <motion.div 
               className="lg:col-span-7"
               variants={containerVariants}
@@ -125,4 +119,4 @@ export default function Dashboard() {
       </div>
     </ProtectedRoute>
   );
-} 
+}

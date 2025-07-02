@@ -44,17 +44,9 @@ export default function Login() {
     <div className="min-h-screen relative flex items-center justify-center bg-[#0A0A0A] p-4">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Top-right purple glow */}
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-purple-900/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-        
-        {/* Bottom-left blue glow */}
         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue-900/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
-        
-        {/* Center subtle gradient */}
         <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 via-transparent to-blue-900/5"></div>
-        
-        {/* Noise texture */}
-        <div className="absolute inset-0 opacity-[0.015] bg-[url('/noise.svg')] bg-repeat"></div>
       </div>
 
       {/* Content */}
@@ -173,4 +165,4 @@ export default function Login() {
       </motion.div>
     </div>
   )
-} 
+}

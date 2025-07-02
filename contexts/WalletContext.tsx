@@ -1,9 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ethers } from 'ethers';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 
 type Transaction = {
@@ -52,11 +49,11 @@ function generateCardNumber(): string {
 function generateMockTransactions(): Transaction[] {
   const types: ('send' | 'receive')[] = ['send', 'receive'];
   const statuses: ('pending' | 'completed' | 'failed')[] = ['completed', 'completed', 'completed', 'pending', 'failed'];
-  const currencies = ['ETH', 'USDC', 'USDT'];
+  const currencies = ['ETH', 'USDC', 'USDT', 'EDU'];
   
   return Array.from({ length: 5 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 14)); // Random date within last 14 days
+    date.setDate(date.getDate() - Math.floor(Math.random() * 14));
     
     return {
       id: `tx-${Date.now()}-${i}`,
@@ -67,20 +64,7 @@ function generateMockTransactions(): Transaction[] {
       address: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
       status: statuses[Math.floor(Math.random() * statuses.length)]
     };
-  }).sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date (newest first)
-}
-
-// Add this at the top of the file, after the imports
-declare global {
-  interface Window {
-    ethereum?: {
-      isMetaMask?: boolean;
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (event: string, callback: (...args: any[]) => void) => void;
-      removeListener: (event: string, callback: (...args: any[]) => void) => void;
-      selectedAddress?: string;
-    };
-  }
+  }).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
@@ -90,64 +74,50 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cardNumber, setCardNumber] = useState<string>(generateCardNumber());
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [currentDefaultWallet, setCurrentDefaultWallet] = useState<string | null>(null);
 
-  // Load user wallets and default wallet from Firestore
+  // Load user data from localStorage
   useEffect(() => {
-    async function loadUserWallets() {
-      if (!user) {
-        setConnectedWallets([]);
-        setDefaultWallet(null);
-        setTransactions([]);
-        return;
-      }
-      
-      try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setConnectedWallets(userData.connectedWallets || []);
-          setDefaultWallet(userData.defaultWallet || null);
-          
-          // If we have real transactions, use those, otherwise generate mock data
-          if (userData.transactions && userData.transactions.length > 0) {
-            setTransactions(userData.transactions.map((tx: any) => ({
-              ...tx,
-              date: tx.date.toDate() // Convert Firestore timestamp to Date
-            })));
-          } else {
-            const mockTxs = generateMockTransactions();
-            setTransactions(mockTxs);
-            // Save mock transactions to Firestore
-            await updateDoc(doc(db, 'users', user.uid), {
-              transactions: mockTxs.map(tx => ({
-                ...tx,
-                date: new Date(tx.date) // Convert to Firestore timestamp
-              }))
-            });
-          }
-          
-          // Set card number if it exists, otherwise generate a new one
-          if (userData.cardNumber) {
-            setCardNumber(userData.cardNumber);
-          } else {
-            const newCardNumber = generateCardNumber();
-            setCardNumber(newCardNumber);
-            await updateDoc(doc(db, 'users', user.uid), {
-              cardNumber: newCardNumber
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error loading user wallets:", error);
-      }
+    if (!user) {
+      setConnectedWallets([]);
+      setDefaultWallet(null);
+      setTransactions([]);
+      return;
     }
     
-    loadUserWallets();
+    const savedWallets = localStorage.getItem(`wallets-${user.uid}`);
+    const savedDefault = localStorage.getItem(`default-wallet-${user.uid}`);
+    const savedTransactions = localStorage.getItem(`transactions-${user.uid}`);
+    const savedCard = localStorage.getItem(`card-${user.uid}`);
+    
+    if (savedWallets) {
+      setConnectedWallets(JSON.parse(savedWallets));
+    }
+    
+    if (savedDefault) {
+      setDefaultWallet(savedDefault);
+    }
+    
+    if (savedTransactions) {
+      const txs = JSON.parse(savedTransactions);
+      setTransactions(txs.map((tx: any) => ({
+        ...tx,
+        date: new Date(tx.date)
+      })));
+    } else {
+      const mockTxs = generateMockTransactions();
+      setTransactions(mockTxs);
+      localStorage.setItem(`transactions-${user.uid}`, JSON.stringify(mockTxs));
+    }
+    
+    if (savedCard) {
+      setCardNumber(savedCard);
+    } else {
+      const newCard = generateCardNumber();
+      setCardNumber(newCard);
+      localStorage.setItem(`card-${user.uid}`, newCard);
+    }
   }, [user]);
 
-  // Connect with MetaMask wallet
   const connectMetaMask = async () => {
     if (!user) return;
     setIsConnecting(true);
@@ -155,37 +125,41 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     try {
       // Check if MetaMask is installed
       if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
-        // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         
         if (accounts.length > 0) {
           const newWallet = accounts[0];
           
-          // Check if wallet is already connected
           if (connectedWallets.includes(newWallet)) {
             alert('Wallet already connected!');
-            setIsConnecting(false);
             return;
           }
           
-          // Update state
           const updatedWallets = [...connectedWallets, newWallet];
           setConnectedWallets(updatedWallets);
           
-          // If this is the first wallet, set as default
           if (updatedWallets.length === 1) {
             setDefaultWalletState(newWallet);
+            localStorage.setItem(`default-wallet-${user.uid}`, newWallet);
           }
           
-          // Update Firestore
-          const userRef = doc(db, 'users', user.uid);
-          await updateDoc(userRef, {
-            connectedWallets: updatedWallets,
-            defaultWallet: updatedWallets.length === 1 ? newWallet : defaultWallet
-          });
+          localStorage.setItem(`wallets-${user.uid}`, JSON.stringify(updatedWallets));
         }
       } else {
-        alert('MetaMask is not installed. Please install it to connect your wallet.');
+        // Demo mode - generate random wallet
+        const randomWallet = `0x${Array.from({ length: 40 }, () => 
+          Math.floor(Math.random() * 16).toString(16)).join('')}`;
+        
+        const updatedWallets = [...connectedWallets, randomWallet];
+        setConnectedWallets(updatedWallets);
+        
+        if (updatedWallets.length === 1) {
+          setDefaultWalletState(randomWallet);
+          localStorage.setItem(`default-wallet-${user.uid}`, randomWallet);
+        }
+        
+        localStorage.setItem(`wallets-${user.uid}`, JSON.stringify(updatedWallets));
+        alert('Demo wallet connected successfully!');
       }
     } catch (error) {
       console.error('Error connecting to MetaMask:', error);
@@ -195,33 +169,24 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Connect with WalletConnect
   const connectWalletConnect = async () => {
     if (!user) return;
     setIsConnecting(true);
     
     try {
-      // In a real app, implement actual WalletConnect integration
-      // For now, simulate connection with a random address
+      // Demo WalletConnect - generate random address
       const randomWallet = `0x${Array.from({ length: 40 }, () => 
         Math.floor(Math.random() * 16).toString(16)).join('')}`;
       
-      // Update state
       const updatedWallets = [...connectedWallets, randomWallet];
       setConnectedWallets(updatedWallets);
       
-      // If this is the first wallet, set as default
       if (updatedWallets.length === 1) {
         setDefaultWalletState(randomWallet);
+        localStorage.setItem(`default-wallet-${user.uid}`, randomWallet);
       }
       
-      // Update Firestore
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        connectedWallets: updatedWallets,
-        defaultWallet: updatedWallets.length === 1 ? randomWallet : defaultWallet
-      });
-      
+      localStorage.setItem(`wallets-${user.uid}`, JSON.stringify(updatedWallets));
       alert('Successfully connected WalletConnect wallet!');
     } catch (error) {
       console.error('Error connecting with WalletConnect:', error);
@@ -231,84 +196,42 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Disconnect a wallet
   const disconnectWallet = async (wallet: string) => {
     if (!user) return;
     
-    try {
-      // Update state
-      const updatedWallets = connectedWallets.filter(w => w !== wallet);
-      setConnectedWallets(updatedWallets);
-      
-      // If we disconnected the default wallet, update default
-      if (defaultWallet === wallet) {
-        const newDefault = updatedWallets.length > 0 ? updatedWallets[0] : null;
-        setDefaultWalletState(newDefault);
-        
-        // Update Firestore
-        await updateDoc(doc(db, 'users', user.uid), {
-          connectedWallets: updatedWallets,
-          defaultWallet: newDefault
-        });
+    const updatedWallets = connectedWallets.filter(w => w !== wallet);
+    setConnectedWallets(updatedWallets);
+    
+    if (defaultWallet === wallet) {
+      const newDefault = updatedWallets.length > 0 ? updatedWallets[0] : null;
+      setDefaultWalletState(newDefault);
+      if (newDefault) {
+        localStorage.setItem(`default-wallet-${user.uid}`, newDefault);
       } else {
-        // Just update connected wallets in Firestore
-        await updateDoc(doc(db, 'users', user.uid), {
-          connectedWallets: updatedWallets
-        });
+        localStorage.removeItem(`default-wallet-${user.uid}`);
       }
-    } catch (error) {
-      console.error('Error disconnecting wallet:', error);
-      alert('Error disconnecting wallet. Please try again.');
     }
+    
+    localStorage.setItem(`wallets-${user.uid}`, JSON.stringify(updatedWallets));
   };
 
-  // Set a wallet as the default
   const setDefaultWallet = async (wallet: string | null) => {
     if (!user || (wallet !== null && !connectedWallets.includes(wallet))) return;
     
-    try {
-      setIsUpdating(true);
-      
-      if (wallet === null) {
-        // If wallet is null, just update the local state
-        setCurrentDefaultWallet(null);
-      } else {
-        // Update in Firestore if we have a valid wallet
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          defaultWallet: wallet
-        });
-        
-        setCurrentDefaultWallet(wallet);
-      }
-    } catch (error) {
-      console.error('Error setting default wallet:', error);
-    } finally {
-      setIsUpdating(false);
+    setDefaultWalletState(wallet);
+    if (wallet) {
+      localStorage.setItem(`default-wallet-${user.uid}`, wallet);
+    } else {
+      localStorage.removeItem(`default-wallet-${user.uid}`);
     }
   };
 
-  // Refresh transaction history
   const refreshTransactions = async () => {
     if (!user) return;
     
-    try {
-      // In a real app, this would fetch actual transaction history
-      // For now, generate new mock transactions
-      const mockTxs = generateMockTransactions();
-      setTransactions(mockTxs);
-      
-      // Update Firestore
-      await updateDoc(doc(db, 'users', user.uid), {
-        transactions: mockTxs.map(tx => ({
-          ...tx,
-          date: new Date(tx.date) // Convert to Firestore timestamp
-        }))
-      });
-    } catch (error) {
-      console.error('Error refreshing transactions:', error);
-      alert('Error refreshing transactions. Please try again.');
-    }
+    const mockTxs = generateMockTransactions();
+    setTransactions(mockTxs);
+    localStorage.setItem(`transactions-${user.uid}`, JSON.stringify(mockTxs));
   };
 
   return (
@@ -329,4 +252,4 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       {children}
     </WalletContext.Provider>
   );
-} 
+}

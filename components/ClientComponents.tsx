@@ -7,7 +7,6 @@ import Navbar from "@/components/navbar";
 import MobileNav from "@/components/MobileNav";
 import { ThemeProvider } from "@/components/theme-provider";
 
-// Export as both default and named export for backward compatibility
 export function ClientComponents({
   children,
 }: {
@@ -31,5 +30,4 @@ export function ClientComponents({
   );
 }
 
-// For backward compatibility
-export default ClientComponents; 
+export default ClientComponents;

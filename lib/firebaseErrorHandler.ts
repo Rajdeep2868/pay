@@ -27,4 +27,4 @@ export const isFirebaseError = (error: any): boolean => {
     errorMessage.includes("offline") ||
     errorMessage.includes("permission")
   );
-}; 
+};

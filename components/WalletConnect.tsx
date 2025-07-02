@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import { useWallet } from '@/contexts/WalletContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { StarIcon, Trash2Icon, Wallet, Check, ExternalLink, ShieldCheck, AlertCircle, X, Plus, ChevronDown } from 'lucide-react';
-import Link from "next/link";
+import { StarIcon, Trash2Icon, Wallet, Check, ExternalLink, ShieldCheck, AlertCircle, X, Plus } from 'lucide-react';
 
 export default function WalletConnect() {
   const { 
@@ -22,7 +19,7 @@ export default function WalletConnect() {
   const [showPopup, setShowPopup] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
 
-  const handleConnectWallet = (connectFn) => {
+  const handleConnectWallet = (connectFn: () => Promise<void>) => {
     if (consentGiven) {
       connectFn();
       setShowPopup(false);
@@ -32,10 +29,8 @@ export default function WalletConnect() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Glowing background effect */}
       <div className="absolute -top-10 -right-10 h-40 w-40 bg-purple-600/10 rounded-full blur-3xl z-0"></div>
       
-      {/* Connection Status */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -73,14 +68,13 @@ export default function WalletConnect() {
         )}
       </motion.div>
 
-      {/* Add Wallet Button */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="relative z-10"
       >
-        <Button
+        <button
           onClick={() => setShowPopup(true)}
           className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border border-purple-500/30 shadow-md shadow-purple-900/20 text-white rounded-xl group transition-all"
         >
@@ -90,10 +84,9 @@ export default function WalletConnect() {
             </div>
             <span className="text-base font-medium">Add Wallet</span>
           </div>
-        </Button>
+        </button>
       </motion.div>
 
-      {/* Connected Wallets */}
       {connectedWallets.length > 0 && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -126,7 +119,6 @@ export default function WalletConnect() {
         </motion.div>
       )}
 
-      {/* Popup for wallet selection */}
       <AnimatePresence>
         {showPopup && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
@@ -148,108 +140,35 @@ export default function WalletConnect() {
                 <h2 className="text-2xl font-bold mb-1 text-white">Connect a Wallet</h2>
                 <p className="text-sm text-slate-400 mb-6">Select from our popular wallet providers</p>
                 
-                <div className="max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                    {/* Group 1: Most Popular */}
-                    <div className="sm:col-span-2 mb-2">
-                      <h3 className="text-xs uppercase text-slate-500 font-semibold mb-2">Most Popular</h3>
-                    </div>
-                    
-                    <WalletOption 
-                      name="MetaMask" 
-                      icon="/metamask.svg" 
-                      gradient="from-orange-500 to-amber-600"
-                      onClick={() => handleConnectWallet(connectMetaMask)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Coinbase Wallet" 
-                      icon="/coinbase.svg" 
-                      gradient="from-blue-500 to-blue-600"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Trust Wallet" 
-                      icon="/trustwallet.svg" 
-                      gradient="from-blue-500 to-blue-700"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Phantom" 
-                      icon="/phantom.svg" 
-                      gradient="from-purple-700 to-fuchsia-500"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    {/* Group 2: More Options */}
-                    <div className="sm:col-span-2 mb-2 mt-4">
-                      <h3 className="text-xs uppercase text-slate-500 font-semibold mb-2">More Options</h3>
-                    </div>
-                    
-                    <WalletOption 
-                      name="WalletConnect" 
-                      icon="/walletconnect.svg" 
-                      gradient="from-purple-600 to-indigo-700"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Rainbow" 
-                      icon="/rainbow.svg" 
-                      gradient="from-pink-500 to-blue-500"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Ledger" 
-                      icon="/ledger.svg" 
-                      gradient="from-slate-700 to-slate-900"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Argent" 
-                      icon="/argent.svg" 
-                      gradient="from-rose-500 to-red-700"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                    
-                    <WalletOption 
-                      name="Exodus" 
-                      icon="/exodus.svg" 
-                      gradient="from-blue-700 to-indigo-900"
-                      onClick={() => handleConnectWallet(connectWalletConnect)}
-                      disabled={!consentGiven}
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  <WalletOption 
+                    name="MetaMask" 
+                    gradient="from-orange-500 to-amber-600"
+                    onClick={() => handleConnectWallet(connectMetaMask)}
+                    disabled={!consentGiven}
+                  />
+                  
+                  <WalletOption 
+                    name="WalletConnect" 
+                    gradient="from-purple-600 to-indigo-700"
+                    onClick={() => handleConnectWallet(connectWalletConnect)}
+                    disabled={!consentGiven}
+                  />
+                  
+                  <WalletOption 
+                    name="Trust Wallet" 
+                    gradient="from-blue-500 to-blue-700"
+                    onClick={() => handleConnectWallet(connectWalletConnect)}
+                    disabled={!consentGiven}
+                  />
+                  
+                  <WalletOption 
+                    name="Coinbase Wallet" 
+                    gradient="from-blue-500 to-blue-600"
+                    onClick={() => handleConnectWallet(connectWalletConnect)}
+                    disabled={!consentGiven}
+                  />
                 </div>
-                
-                <style jsx global>{`
-                  .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                  }
-                  .custom-scrollbar::-webkit-scrollbar-track {
-                    background: rgba(15, 23, 42, 0.1);
-                    border-radius: 10px;
-                  }
-                  .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(124, 58, 237, 0.3);
-                    border-radius: 10px;
-                  }
-                  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(124, 58, 237, 0.5);
-                  }
-                `}</style>
                 
                 <div className="space-y-4 mt-6 pt-4 border-t border-slate-800">
                   <div className="flex items-start gap-2">
@@ -261,26 +180,9 @@ export default function WalletConnect() {
                       onChange={(e) => setConsentGiven(e.target.checked)}
                     />
                     <label htmlFor="consent" className="text-sm text-slate-400">
-                      I confirm that I am of legal age in my jurisdiction and I agree to the 
-                      <Link href="#" className="text-purple-400 hover:text-purple-300 ml-1">
-                        Terms & Conditions
-                      </Link>.
+                      I confirm that I am of legal age in my jurisdiction and I agree to the Terms & Conditions.
                     </label>
                   </div>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-slate-950 border-t border-slate-800">
-                <div className="text-center text-xs text-slate-500 mb-2">
-                  <span className="text-purple-400">New to crypto wallets?</span> Learn more about wallets
-                </div>
-                <div className="flex items-center justify-center gap-1 flex-wrap">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <p className="text-slate-400 text-xs">Secure</p>
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse mx-1"></span>
-                  <p className="text-slate-400 text-xs">Non-custodial</p>
-                  <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-pulse mx-1"></span>
-                  <p className="text-slate-400 text-xs">Multi-chain</p>
                 </div>
               </div>
             </motion.div>
@@ -291,7 +193,7 @@ export default function WalletConnect() {
   );
 }
 
-function WalletOption({ name, icon, gradient, onClick, disabled }) {
+function WalletOption({ name, gradient, onClick, disabled }: { name: string; gradient: string; onClick: () => void; disabled: boolean }) {
   return (
     <motion.button
       whileHover={{ y: -2, scale: 1.01 }}
@@ -301,7 +203,7 @@ function WalletOption({ name, icon, gradient, onClick, disabled }) {
       disabled={disabled}
     >
       <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mr-3`}>
-        <img src={icon} alt={name} width="20" height="20" />
+        <span className="text-white font-bold text-sm">{name.charAt(0)}</span>
       </div>
       <span className="text-white font-medium">{name}</span>
       <div className="ml-auto opacity-70">
@@ -313,7 +215,7 @@ function WalletOption({ name, icon, gradient, onClick, disabled }) {
   );
 }
 
-function WalletItem({ address, isDefault, onSetDefault, onDisconnect, index }) {
+function WalletItem({ address, isDefault, onSetDefault, onDisconnect, index }: { address: string; isDefault: boolean; onSetDefault: () => void; onDisconnect: () => void; index: number }) {
   const [showOptions, setShowOptions] = useState(false);
 
   return (
@@ -351,26 +253,22 @@ function WalletItem({ address, isDefault, onSetDefault, onDisconnect, index }) {
       </div>
       <div className={`flex items-center gap-2 transition-opacity ${showOptions ? 'opacity-100' : 'opacity-0'}`}>
         {!isDefault && (
-          <Button
+          <button
             onClick={onSetDefault}
-            size="sm"
-            variant="outline"
-            className="h-8 text-xs border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:border-purple-500"
+            className="h-8 text-xs border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:border-purple-500 px-3 py-1 rounded border transition-colors"
           >
-            <StarIcon className="h-3 w-3 mr-1" />
+            <StarIcon className="h-3 w-3 mr-1 inline" />
             Set Default
-          </Button>
+          </button>
         )}
-        <Button
+        <button
           onClick={onDisconnect}
-          size="sm"
-          variant="outline"
-          className="h-8 text-xs border-red-500/30 text-red-500 hover:bg-red-500/10 hover:border-red-500"
+          className="h-8 text-xs border-red-500/30 text-red-500 hover:bg-red-500/10 hover:border-red-500 px-3 py-1 rounded border transition-colors"
         >
-          <Trash2Icon className="h-3 w-3 mr-1" />
+          <Trash2Icon className="h-3 w-3 mr-1 inline" />
           Disconnect
-        </Button>
+        </button>
       </div>
     </motion.div>
   );
-} 
+}

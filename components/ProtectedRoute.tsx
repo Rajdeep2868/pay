@@ -11,7 +11,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!loading && !user) {
-      // Store the intended destination for redirect after login
       sessionStorage.setItem('redirectAfterLogin', pathname);
       router.push('/login');
     }
@@ -30,4 +29,4 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   return <>{children}</>;
-} 
+}

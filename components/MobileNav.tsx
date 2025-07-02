@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Home, Wallet, Send, User } from "lucide-react";
@@ -16,9 +15,7 @@ export default function MobileNav() {
   }
 
   return (
-    <div 
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 py-2 px-3 shadow-lg shadow-slate-900/50"
-    >
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 py-2 px-3 shadow-lg">
       <div className="flex justify-around items-center">
         <NavItem 
           href="/" 
@@ -56,14 +53,12 @@ export default function MobileNav() {
   );
 }
 
-function NavItem({ href, icon, label, isActive }) {
+function NavItem({ href, icon, label, isActive }: { href: string; icon: React.ReactNode; label: string; isActive: boolean }) {
   return (
     <Link 
       href={href}
       className={`flex flex-col items-center justify-center px-3 py-1 rounded-lg ${
-        isActive 
-          ? "text-emerald-400 bg-slate-800" 
-          : "text-slate-400 hover:text-white"
+        isActive ? "text-emerald-400 bg-slate-800" : "text-slate-400 hover:text-white"
       }`}
     >
       <div className="relative">
@@ -79,4 +74,4 @@ function NavItem({ href, icon, label, isActive }) {
       <span className="text-xs mt-1">{label}</span>
     </Link>
   );
-} 
+}

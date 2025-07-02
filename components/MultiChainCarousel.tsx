@@ -1,18 +1,18 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Image from "next/image"
 
 const chains = [
-  { name: "Ethereum", logo: "/chains/ethereum.svg" },
-  { name: "Bitcoin", logo: "/chains/bitcoin.svg" },
-  { name: "Solana", logo: "/chains/solana.svg" },
-  { name: "Polygon", logo: "/chains/polygon.svg" },
-  { name: "Binance", logo: "/chains/binance.svg" },
-  { name: "Avalanche", logo: "/chains/avalanche.svg" },
+  { name: "Ethereum", symbol: "ETH" },
+  { name: "Bitcoin", symbol: "BTC" },
+  { name: "Solana", symbol: "SOL" },
+  { name: "Polygon", symbol: "MATIC" },
+  { name: "Binance", symbol: "BNB" },
+  { name: "Avalanche", symbol: "AVAX" },
+  { name: "EduChain", symbol: "EDU" },
+  { name: "Cardano", symbol: "ADA" },
 ]
 
-// Duplicate the chains for seamless loop
 const duplicatedChains = [...chains, ...chains, ...chains]
 
 export default function MultiChainCarousel() {
@@ -20,7 +20,6 @@ export default function MultiChainCarousel() {
     <section className="py-20 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -36,7 +35,6 @@ export default function MultiChainCarousel() {
             </p>
           </motion.div>
 
-          {/* Chains Carousel */}
           <div className="relative overflow-hidden">
             <motion.div 
               className="flex gap-6"
@@ -59,14 +57,10 @@ export default function MultiChainCarousel() {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="relative bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl rounded-2xl border border-white/10 p-6 h-full transition-all duration-300">
-                    <div className="aspect-square relative mb-4">
-                      <Image
-                        src={chain.logo}
-                        alt={chain.name}
-                        width={64}
-                        height={64}
-                        className="object-contain w-full h-full"
-                      />
+                    <div className="aspect-square relative mb-4 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">{chain.symbol}</span>
+                      </div>
                     </div>
                     <p className="text-center text-sm text-gray-400">{chain.name}</p>
                   </div>
@@ -78,4 +72,4 @@ export default function MultiChainCarousel() {
       </div>
     </section>
   )
-} 
+}

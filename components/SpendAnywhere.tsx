@@ -33,11 +33,9 @@ export default function SpendAnywhere() {
 
   return (
     <section className="py-24 relative overflow-hidden">
-      {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-purple-950/10 via-background to-background"></div>
       
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
@@ -63,7 +61,6 @@ export default function SpendAnywhere() {
           </motion.p>
         </div>
 
-        {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {features.map((feature, index) => (
             <motion.div
@@ -84,7 +81,6 @@ export default function SpendAnywhere() {
           ))}
         </div>
 
-        {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -101,4 +97,4 @@ export default function SpendAnywhere() {
       </div>
     </section>
   )
-} 
+}

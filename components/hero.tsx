@@ -1,11 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Image from "next/image"
 import { Check } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import GridBackground from "./GridBackground"
 
 export default function Hero() {
   const { user } = useAuth()
@@ -28,9 +26,6 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* 3D Grid Background */}
-      <GridBackground />
-
       <div className="container mx-auto px-4 relative z-10 py-20">
         <div className="flex flex-col lg:flex-row items-center gap-16">
           {/* Left Content */}
@@ -96,7 +91,7 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right Content - Phone */}
+          {/* Right Content - Phone Mockup */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -108,16 +103,37 @@ export default function Hero() {
               <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/20 via-violet-600/20 to-blue-600/20 rounded-full blur-[100px] opacity-75"></div>
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/10 to-blue-600/10 rounded-[2rem] blur-2xl"></div>
               
-              {/* Phone Image */}
-              <div className="relative z-10">
-                <Image
-                  src="/handwall.png"
-                  alt="Fusion Pay Mobile App"
-                  width={600}
-                  height={800}
-                  className="w-full h-auto drop-shadow-2xl"
-                  priority
-                />
+              {/* Phone Mockup */}
+              <div className="relative z-10 w-80 h-[600px] bg-gradient-to-b from-slate-900 to-slate-800 rounded-[3rem] p-4 border border-slate-700">
+                <div className="w-full h-full bg-black rounded-[2.5rem] p-6 flex flex-col">
+                  <div className="text-center mb-8">
+                    <h3 className="text-white text-xl font-bold mb-2">FusionPay</h3>
+                    <p className="text-gray-400 text-sm">Crypto Payments Made Easy</p>
+                  </div>
+                  
+                  <div className="flex-1 space-y-6">
+                    <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-xl p-4">
+                      <p className="text-white text-sm font-medium">Balance</p>
+                      <p className="text-2xl font-bold text-white">₹12,450.00</p>
+                      <p className="text-gray-400 text-xs">≈ 0.05 ETH</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-800 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-purple-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-purple-400 text-sm">📱</span>
+                        </div>
+                        <p className="text-white text-xs">Scan & Pay</p>
+                      </div>
+                      <div className="bg-slate-800 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-blue-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-blue-400 text-sm">💳</span>
+                        </div>
+                        <p className="text-white text-xs">Virtual Card</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -126,4 +142,3 @@ export default function Hero() {
     </section>
   )
 }
-

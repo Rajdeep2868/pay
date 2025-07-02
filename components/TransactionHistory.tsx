@@ -24,7 +24,6 @@ export default function TransactionHistory() {
     return true;
   });
 
-  // Format date to readable format
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', { 
       month: 'short', 
@@ -34,12 +33,10 @@ export default function TransactionHistory() {
     });
   };
 
-  // Truncate wallet address
   const truncateAddress = (address: string) => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
-  // Get status icon based on transaction status
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -154,4 +151,4 @@ export default function TransactionHistory() {
       </div>
     </div>
   );
-} 
+}
